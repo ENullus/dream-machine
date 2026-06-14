@@ -16,8 +16,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #d8d8d8;
-  color: var(--text);
+  background:
+    linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.55)),
+    url('/static/img/bg.png') center center / cover no-repeat fixed;
+  background-color: #0a0a0e;
+  color: rgba(200,210,220,0.9);
   font-family: "Orbitron", monospace;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -34,12 +37,13 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.8rem 2rem;
-  background: rgba(176, 176, 180, 0.95);
-  border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+  background: rgba(6,6,10,0.88);
+  border-bottom: 1px solid rgba(0, 217, 255, 0.2);
   backdrop-filter: blur(12px);
   font-size: 0.75rem;
   letter-spacing: 2px;
   text-transform: uppercase;
+  color: rgba(180,195,210,0.8);
 }
 
 .back-link {
@@ -186,11 +190,10 @@ h1 {
   font-size: 2.5rem;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: #1a1a1a;
+  color: #fff;
   text-shadow:
     0 0 5px rgba(0, 217, 255, 0.4),
     0 0 15px rgba(0, 217, 255, 0.2);
-  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.15);
   text-align: center;
 }
 
@@ -200,7 +203,7 @@ h2 {
   font-size: 1rem;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: #1a1a1a;
+  color: rgba(200,210,220,0.9);
   text-shadow: 0 0 8px var(--accent-glow);
 }
 
@@ -596,7 +599,7 @@ h2 {
   font-weight: 400;
   font-size: 1.05rem;
   line-height: 1.9;
-  color: #1a1a1a;
+  color: rgba(200,215,225,0.9);
   margin: 0;
 }
 
@@ -625,11 +628,11 @@ h2 {
 
 .report-frame {
   position: relative;
-  background: radial-gradient(ellipse at 50% 50%, rgba(200, 200, 204, 0.95), rgba(184, 184, 188, 0.98));
+  background: rgba(6,6,10,0.9);
   border: 1px solid rgba(0, 217, 255, 0.25);
   padding: 2.5rem;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 4px 20px rgba(0, 0, 0, 0.4),
     0 0 30px rgba(0, 217, 255, 0.08);
   clip-path: polygon(
     0% var(--corner),
@@ -1241,39 +1244,46 @@ h2 {
   gap: 0.4rem;
 }
 
-/* ---- dial overrides for dark machine ---- */
+/* ---- Circular dial overrides for machine panel ---- */
+.machine-panel .dial-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 0.8rem;
+}
+
+.machine-panel .dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 4px 5px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(0,217,255,0.07);
+  clip-path: none;
+  animation: dialAppear 0.4s ease-out forwards;
+}
+
 .machine-panel .dial label {
-  color: #1a1a1a;
-  font-size: 0.6rem;
-  letter-spacing: 1px;
+  font-size: 0.47rem;
+  letter-spacing: 0.5px;
+  color: rgba(150,170,185,0.7);
+  text-align: center;
+  margin-top: 3px;
+  line-height: 1.2;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .machine-panel .value {
+  font-family: "Rajdhani", monospace;
+  font-size: 0.6rem;
   color: var(--accent);
-  font-size: 0.68rem;
-  min-width: 3.5rem;
-  text-align: right;
-}
-
-.machine-panel .lcars-track {
-  background: rgba(0,217,255,0.07);
-  border: 1px solid rgba(0,217,255,0.12);
-}
-
-.machine-panel .lcars-fill {
-  background: linear-gradient(90deg, rgba(0,150,180,0.7), var(--accent));
-  box-shadow: 0 0 5px rgba(0,217,255,0.35);
-}
-
-.machine-panel .lcars-tick {
-  background: rgba(0,217,255,0.2);
-}
-
-.machine-panel input[type="range"] { cursor: pointer; }
-
-.machine-panel input[type="range"]::-webkit-slider-thumb {
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(0,217,255,0.4);
+  text-align: center;
+  min-height: 1em;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
 }
 
 /* ---- responsive: stack sections vertically on mobile ---- */
