@@ -1,30 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
-  <section class="container">
-    <div class="header-block">
-      <h1>DREAM MACHINE</h1>
-    </div>
-    <div class="action-row">
-      <button id="btn-generate" class="btn">GENERATE RANDOM SOCIETY</button>
-      <button id="btn-generate-dials" class="btn">GENERATE FROM DIALS</button>
-      <button id="btn-voice" class="btn ghost">VOICE: OFF</button>
-    </div>
-  </section>
 
-  <div class="sector-header">SECTOR: INPUT DIALS</div>
-
-  <section class="container">
-    <div id="input-grid" class="grid"></div>
-  </section>
-
-  <div class="sector-header">SECTOR: GENERATED OUTPUT</div>
-
-  <section id="output-panel" class="container output-panel">
-    <div class="card">
-      <h2>OUTPUT REPORT</h2>
-      <pre id="narrative" class="narrative">Awaiting generation...</pre>
+  <!-- INTRO -->
+  <section class="intro-module">
+    <div class="intro-inner">
+      <h1>SOCIETY DREAM MACHINE</h1>
+      <p class="intro-text">
+        A generative engine trained on <strong>1,291 human societies</strong> from the Ethnographic Atlas.
+        Adjust the dials below to configure a civilisation's subsistence, environment, kinship, and political structure —
+        or let the machine dream one into existence. Each output is a plausible society derived from real anthropological data.
+      </p>
+      <div class="action-row">
+        <button id="btn-generate" class="btn primary">⚙ DREAM A SOCIETY</button>
+        <button id="btn-generate-dials" class="btn">▶ RUN FROM DIALS</button>
+        <button id="btn-voice" class="btn ghost">◎ VOICE: OFF</button>
+      </div>
     </div>
   </section>
+
+  <!-- CONTROL PANELS -->
+  <div class="panels-label">CONTROL MATRIX</div>
+
+  <div class="panels-grid">
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-tag">01</span>
+        SUBSISTENCE
+        <span class="panel-desc">How the society feeds itself</span>
+      </div>
+      <div class="dial-group" id="group-subsistence"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-tag">02</span>
+        ENVIRONMENT
+        <span class="panel-desc">Climate and ecological conditions</span>
+      </div>
+      <div class="dial-group" id="group-environment"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-tag">03</span>
+        SOCIETY
+        <span class="panel-desc">Political structure and settlement</span>
+      </div>
+      <div class="dial-group" id="group-society"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-tag">04</span>
+        KINSHIP
+        <span class="panel-desc">Family, descent, and marriage patterns</span>
+      </div>
+      <div class="dial-group" id="group-kinship"></div>
+    </div>
+
+  </div>
 
   <div class="ambient-particles"></div>
 
