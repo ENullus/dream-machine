@@ -1106,10 +1106,10 @@ h2 {
   max-width: 1100px;
   margin: 5rem auto 0;
   padding: 2.5rem 2rem 2rem;
-  background: linear-gradient(160deg, rgba(20,20,24,0.97) 0%, rgba(10,10,14,0.99) 100%);
-  border: 1px solid rgba(0,217,255,0.2);
+  background: linear-gradient(160deg, rgba(14,14,18,0.98) 0%, rgba(8,8,12,0.99) 100%);
+  border: 1px solid rgba(0,217,255,0.15);
   border-top: 3px solid var(--accent);
-  box-shadow: 0 0 40px rgba(0,217,255,0.08), inset 0 0 60px rgba(0,0,0,0.4);
+  box-shadow: 0 0 40px rgba(0,217,255,0.06), inset 0 0 60px rgba(0,0,0,0.5);
   position: relative;
   overflow: hidden;
 }
@@ -1119,8 +1119,8 @@ h2 {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,217,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,217,255,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0,217,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,217,255,0.035) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
 }
@@ -1133,11 +1133,11 @@ h2 {
 
 .intro-inner h1 {
   font-family: "Orbitron", monospace;
-  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-size: clamp(1.4rem, 3.5vw, 2.6rem);
   font-weight: 900;
   letter-spacing: 6px;
   color: #fff;
-  text-shadow: 0 0 20px var(--accent), 0 0 40px rgba(0,217,255,0.3);
+  text-shadow: 0 0 20px var(--accent), 0 0 50px rgba(0,217,255,0.2);
   margin-bottom: 1rem;
 }
 
@@ -1146,16 +1146,13 @@ h2 {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.7;
-  color: rgba(200,210,220,0.85);
-  letter-spacing: 0.5px;
-  max-width: 720px;
-  margin: 0 auto 2rem;
+  color: rgba(180,195,210,0.85);
+  letter-spacing: 0.4px;
+  max-width: 680px;
+  margin: 0 auto 1.8rem;
 }
 
-.intro-text strong {
-  color: var(--accent);
-  font-weight: 700;
-}
+.intro-text strong { color: var(--accent); font-weight: 700; }
 
 .action-row {
   display: flex;
@@ -1168,146 +1165,125 @@ h2 {
   background: var(--accent);
   color: #000;
   font-weight: 700;
-  box-shadow: 0 0 20px rgba(0,217,255,0.5);
+  box-shadow: 0 0 20px rgba(0,217,255,0.45);
 }
-
 .btn.primary:hover {
   background: #fff;
   box-shadow: 0 0 30px rgba(0,217,255,0.8);
 }
 
 /* ======================================================
-   CONTROL MATRIX LABEL
+   MACHINE PANEL (single unified panel)
    ====================================================== */
-.panels-label {
+.machine-wrap {
   max-width: 1100px;
-  margin: 2rem auto 0.6rem;
+  margin: 1.5rem auto 3rem;
   padding: 0 1rem;
-  font-family: "Orbitron", monospace;
-  font-size: 0.65rem;
-  letter-spacing: 4px;
-  color: rgba(0,217,255,0.5);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
-.panels-label::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(0,217,255,0.3), transparent);
-}
-
-/* ======================================================
-   PANELS GRID (2×2)
-   ====================================================== */
-.panels-grid {
+.machine-panel {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
-  max-width: 1100px;
-  margin: 0 auto 3rem;
-  padding: 0 1rem;
-}
-
-@media (max-width: 768px) {
-  .panels-grid { grid-template-columns: 1fr; }
-  .intro-module { margin-top: 4.5rem; }
-}
-
-/* ======================================================
-   INDIVIDUAL PANEL
-   ====================================================== */
-.panel {
-  background: linear-gradient(160deg, rgba(18,18,22,0.97) 0%, rgba(10,10,14,0.99) 100%);
-  border: 1px solid rgba(0,217,255,0.15);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.3);
-  overflow: hidden;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr 1px 1fr;
+  background: linear-gradient(160deg, rgba(12,12,16,0.99) 0%, rgba(6,6,10,1) 100%);
+  border: 1px solid rgba(0,217,255,0.18);
+  border-top: 2px solid rgba(0,217,255,0.35);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.6),
+    inset 0 0 80px rgba(0,0,0,0.4),
+    0 0 30px rgba(0,217,255,0.05);
   position: relative;
+  overflow: hidden;
 }
 
-.panel::before {
+/* grid mesh over whole panel */
+.machine-panel::before {
   content: "";
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,217,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,217,255,0.03) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(rgba(0,217,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,217,255,0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
   pointer-events: none;
+  z-index: 0;
 }
 
-.panel-header {
+.machine-section {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.2rem;
-  background: rgba(0,217,255,0.06);
-  border-bottom: 1px solid rgba(0,217,255,0.15);
+  z-index: 1;
+  min-width: 0;
+}
+
+.machine-section-label {
+  padding: 0.6rem 1.2rem;
   font-family: "Orbitron", monospace;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 3px;
   color: var(--accent);
+  background: rgba(0,217,255,0.05);
+  border-bottom: 1px solid rgba(0,217,255,0.12);
   text-transform: uppercase;
 }
 
-.panel-tag {
-  font-size: 0.6rem;
-  color: rgba(0,217,255,0.4);
-  letter-spacing: 1px;
-  border: 1px solid rgba(0,217,255,0.25);
-  padding: 1px 5px;
-}
-
-.panel-desc {
-  margin-left: auto;
-  font-family: "Rajdhani", sans-serif;
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 1px;
-  color: rgba(150,160,170,0.7);
-  text-transform: none;
+.machine-divider {
+  background: rgba(0,217,255,0.12);
+  position: relative;
+  z-index: 1;
 }
 
 .dial-group {
   position: relative;
   z-index: 1;
-  padding: 1rem 1.2rem 1.2rem;
+  padding: 0.8rem 1rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-/* Override dial label color for dark panels */
-.panel .dial label {
-  color: rgba(180,190,200,0.9);
-  font-size: 0.65rem;
-  letter-spacing: 1.5px;
+/* ---- dial overrides for dark machine ---- */
+.machine-panel .dial label {
+  color: rgba(200,215,225,0.9);
+  font-size: 0.6rem;
+  letter-spacing: 1px;
 }
 
-.panel .value {
+.machine-panel .value {
   color: var(--accent);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  min-width: 3.5rem;
+  text-align: right;
 }
 
-.panel .lcars-track {
-  background: rgba(0,217,255,0.08);
-  border: 1px solid rgba(0,217,255,0.15);
+.machine-panel .lcars-track {
+  background: rgba(0,217,255,0.07);
+  border: 1px solid rgba(0,217,255,0.12);
 }
 
-.panel .lcars-fill {
-  background: linear-gradient(90deg, rgba(0,217,255,0.4), var(--accent));
-  box-shadow: 0 0 6px rgba(0,217,255,0.4);
+.machine-panel .lcars-fill {
+  background: linear-gradient(90deg, rgba(0,150,180,0.7), var(--accent));
+  box-shadow: 0 0 5px rgba(0,217,255,0.35);
 }
 
-.panel .lcars-tick {
-  background: rgba(0,217,255,0.25);
+.machine-panel .lcars-tick {
+  background: rgba(0,217,255,0.2);
 }
 
-.panel input[type="range"]::-webkit-slider-thumb {
+.machine-panel input[type="range"] { cursor: pointer; }
+
+.machine-panel input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
+  box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(0,217,255,0.4);
+}
+
+/* ---- responsive: stack sections vertically on mobile ---- */
+@media (max-width: 860px) {
+  .machine-panel {
+    grid-template-columns: 1fr;
+  }
+  .machine-divider {
+    height: 1px;
+    width: 100%;
+  }
+  .intro-module { margin-top: 4.5rem; }
 }
