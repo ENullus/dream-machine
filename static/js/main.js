@@ -1,9 +1,14 @@
 const schema = window.__SCHEMA__ || {};
 
-const btnGenerate = document.getElementById("btn-generate");
+const btnGenerate     = document.getElementById("btn-generate");
 const btnGenerateDials = document.getElementById("btn-generate-dials");
-const btnVoice = document.getElementById("btn-voice");
-const vortex = document.getElementById("vortex-overlay");
+const btnRegenerate   = document.getElementById("btn-regenerate");
+const btnVoice        = document.getElementById("btn-voice");
+const btnVoiceOut     = document.getElementById("btn-voice-out");
+const vortex          = document.getElementById("vortex-overlay");
+const outputShell     = document.getElementById("output-shell");
+const narrativeEl     = document.getElementById("narrative");
+const complexityLabel = document.getElementById("complexity-label");
 
 let voiceEnabled = false;
 let currentSpeech = null;
@@ -15,7 +20,8 @@ const GROUPS = {
   },
   environment: {
     container: "group-environment",
-    keys: ["AnnualMeanTemperature","MonthlyMeanPrecipitation","TemperatureConstancy","PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"]
+    keys: ["AnnualMeanTemperature","MonthlyMeanPrecipitation","TemperatureConstancy",
+           "PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"]
   },
   society: {
     container: "group-society",
@@ -29,7 +35,6 @@ const GROUPS = {
 
 function buildDial(key, info, container) {
   if (!info) return;
-
   const wrapper = document.createElement("div");
   wrapper.className = "dial";
 
@@ -53,9 +58,9 @@ function buildDial(key, info, container) {
     info.type === "categorical" ? info.valid_values.length : (info.max - info.min + 1), 12
   );
   for (let i = 0; i < tickCount; i++) {
-    const tick = document.createElement("div");
-    tick.className = "lcars-tick";
-    ticks.appendChild(tick);
+    const t = document.createElement("div");
+    t.className = "lcars-tick";
+    ticks.appendChild(t);
   }
   slider.appendChild(ticks);
 
@@ -84,41 +89,26 @@ function buildDial(key, info, container) {
   wrapper.appendChild(value);
 
   function updateFill() {
-    const min = parseFloat(input.min);
-    const max = parseFloat(input.max);
-    const val = parseFloat(input.value);
-    const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
-    fill.style.width = pct + "%";
+    const min = parseFloat(input.min), max = parseFloat(input.max), val = parseFloat(input.value);
+    fill.style.width = (max > min ? ((val - min) / (max - min)) * 100 : 0) + "%";
   }
-
   input.addEventListener("input", () => {
-    if (info.type !== "continuous") {
-      const n = parseInt(input.value, 10);
-      if (!Number.isNaN(n)) input.value = Math.min(Math.max(n, parseInt(input.min), parseInt(input.max)));
-    }
     value.textContent = formatValue(input, info);
     updateFill();
   });
-
   updateFill();
   container.appendChild(wrapper);
 }
 
 function buildInputs() {
   const placed = new Set();
-
   Object.entries(GROUPS).forEach(([, group]) => {
     const container = document.getElementById(group.container);
     if (!container) return;
     group.keys.forEach(key => {
-      if (schema[key]) {
-        buildDial(key, schema[key], container);
-        placed.add(key);
-      }
+      if (schema[key]) { buildDial(key, schema[key], container); placed.add(key); }
     });
   });
-
-  // Any remaining keys go into society panel as fallback
   const fallback = document.getElementById("group-society");
   Object.entries(schema).forEach(([key, info]) => {
     if (!placed.has(key) && fallback) buildDial(key, info, fallback);
@@ -127,7 +117,7 @@ function buildInputs() {
 
 function getInputs() {
   const values = {};
-  document.querySelectorAll("[data-var]").forEach((el) => {
+  document.querySelectorAll("[data-var]").forEach(el => {
     const key = el.dataset.var;
     const info = schema[key];
     if (!info) return;
@@ -139,7 +129,7 @@ function getInputs() {
 }
 
 function setInputs(values) {
-  document.querySelectorAll("[data-var]").forEach((el) => {
+  document.querySelectorAll("[data-var]").forEach(el => {
     const key = el.dataset.var;
     if (values[key] === undefined) return;
     el.value = values[key];
@@ -155,15 +145,25 @@ function setInputs(values) {
   });
 }
 
+function revealOutput(data) {
+  narrativeEl.textContent = data.description || "No narrative generated.";
+  if (complexityLabel && data.complexity !== undefined) {
+    complexityLabel.textContent = `COMPLEXITY INDEX: ${data.complexity.toFixed(2)}`;
+  }
+  outputShell.classList.remove("intro-locked");
+  outputShell.classList.add("reveal");
+  setTimeout(() => outputShell.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+  if (voiceEnabled && data.description) speak(data.description);
+}
+
 async function generate() {
   showVortex(true);
   const res = await fetch("/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
   const data = await res.json();
-  if (!res.ok) { showVortex(false); return; }
+  showVortex(false);
+  if (!res.ok) return;
   setInputs(data.society || {});
-  sessionStorage.setItem("dream_report", JSON.stringify(data));
-  sessionStorage.setItem("dream_transition", "vortex");
-  setTimeout(() => { window.location.href = "/report"; }, 1200);
+  setTimeout(() => revealOutput(data), 400);
 }
 
 async function generateFromDials() {
@@ -171,10 +171,9 @@ async function generateFromDials() {
   const payload = getInputs();
   const res = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
-  if (!res.ok) { showVortex(false); return; }
-  sessionStorage.setItem("dream_report", JSON.stringify(data));
-  sessionStorage.setItem("dream_transition", "vortex");
-  setTimeout(() => { window.location.href = "/report"; }, 1200);
+  showVortex(false);
+  if (!res.ok) return;
+  setTimeout(() => revealOutput(data), 400);
 }
 
 function formatValue(input, info) {
@@ -209,8 +208,15 @@ function speak(text) {
 
 btnGenerate.addEventListener("click", generate);
 btnGenerateDials.addEventListener("click", generateFromDials);
+btnRegenerate.addEventListener("click", generate);
+
 btnVoice.addEventListener("click", () => {
   voiceEnabled = !voiceEnabled;
+  btnVoice.textContent = `◎ VOICE: ${voiceEnabled ? "ON" : "OFF"}`;
+});
+btnVoiceOut.addEventListener("click", () => {
+  voiceEnabled = !voiceEnabled;
+  btnVoiceOut.textContent = `◎ VOICE: ${voiceEnabled ? "ON" : "OFF"}`;
   btnVoice.textContent = `◎ VOICE: ${voiceEnabled ? "ON" : "OFF"}`;
 });
 
