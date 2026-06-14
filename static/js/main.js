@@ -8,34 +8,44 @@ const outputShell      = document.getElementById("output-shell");
 const narrativeEl      = document.getElementById("narrative");
 const complexityLabel  = document.getElementById("complexity-label");
 
-const GROUPS = {
-  subsistence: {
-    container: "group-subsistence",
-    keys: ["EA001","EA002","EA003","EA004","EA005","EA042","EA028","EA029"]
-  },
-  environment: {
-    container: "group-environment",
-    keys: ["AnnualMeanTemperature","MonthlyMeanPrecipitation","TemperatureConstancy",
-           "PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"]
-  },
-  society: {
-    container: "group-society",
-    keys: ["EA033","EA030","EA070","EA065","EA066","EA067","EA068","EA069","EA073","EA076"]
-  },
-  kinship: {
-    container: "group-kinship",
-    keys: ["EA043","EA008","EA009","EA010","EA011","EA012","EA017","EA018","EA019","EA020"]
-  }
-};
+// ── Radial machine layout ──────────────────────────────────────────────────
+const RADIAL_CX = 330;
+const RADIAL_CY = 330;
 
-// Circular sundial dial constants
+// 4 sections, each centred on a cardinal axis, spreading 80° either side of that axis.
+// rings: [{r: radius, n: dials_in_this_ring}]
+const SECTIONS = [
+  {
+    id: 'subsistence', centerAngle: 0, spread: 80,
+    keys: ["EA001","EA002","EA003","EA004","EA005","EA042","EA028","EA029"],
+    rings: [{ r: 142, n: 4 }, { r: 198, n: 4 }]
+  },
+  {
+    id: 'environment', centerAngle: 270, spread: 80,
+    keys: ["AnnualMeanTemperature","MonthlyMeanPrecipitation","TemperatureConstancy",
+           "PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"],
+    rings: [{ r: 142, n: 3 }, { r: 198, n: 3 }]
+  },
+  {
+    id: 'society', centerAngle: 90, spread: 80,
+    keys: ["EA033","EA030","EA070","EA065","EA066","EA067","EA068","EA069","EA073","EA076"],
+    rings: [{ r: 142, n: 4 }, { r: 198, n: 3 }, { r: 252, n: 3 }]
+  },
+  {
+    id: 'kinship', centerAngle: 180, spread: 80,
+    keys: ["EA043","EA008","EA009","EA010","EA011","EA012","EA017","EA018","EA019","EA020"],
+    rings: [{ r: 142, n: 4 }, { r: 198, n: 3 }, { r: 252, n: 3 }]
+  }
+];
+
+// ── Circular sundial dial constants ────────────────────────────────────────
 // Arc from 135° (7:30, bottom-left) clockwise 270° to 45° (4:30, bottom-right)
-const DIAL_SIZE = 82;
-const DIAL_R    = 28;
+const DIAL_SIZE = 44;
+const DIAL_R    = 14;
 const DIAL_CX   = DIAL_SIZE / 2;
 const DIAL_CY   = DIAL_SIZE / 2;
-const ARC_START = 135;   // degrees (SVG: 0=right, 90=down)
-const ARC_SWEEP = 270;   // degrees clockwise
+const ARC_START = 135;
+const ARC_SWEEP = 270;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 function polarXY(deg, r) {
@@ -69,11 +79,13 @@ function mouseAngleDeg(e, el) {
   return deg;
 }
 
-function buildDial(key, info, container) {
+function buildDial(key, info, container, posX, posY) {
   if (!info) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "dial";
+  // Absolute position within radial-machine, centred on the computed point
+  wrapper.style.cssText = `position:absolute;left:${posX}px;top:${posY}px;transform:translate(-50%,-50%)`;
 
   const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("viewBox", `0 0 ${DIAL_SIZE} ${DIAL_SIZE}`);
@@ -83,72 +95,69 @@ function buildDial(key, info, container) {
 
   // Background circle
   const bg = document.createElementNS(SVG_NS, "circle");
-  bg.setAttribute("cx", DIAL_CX); bg.setAttribute("cy", DIAL_CY); bg.setAttribute("r", DIAL_R + 6);
-  bg.setAttribute("fill", "rgba(0,0,0,0.6)");
-  bg.setAttribute("stroke", "rgba(0,217,255,0.1)");
-  bg.setAttribute("stroke-width", "1");
+  bg.setAttribute("cx", DIAL_CX); bg.setAttribute("cy", DIAL_CY); bg.setAttribute("r", DIAL_R + 4);
+  bg.setAttribute("fill", "rgba(0,0,0,0.65)");
+  bg.setAttribute("stroke", "rgba(0,217,255,0.14)");
+  bg.setAttribute("stroke-width", "0.5");
   svg.appendChild(bg);
 
-  // Track arc (full 270°)
+  // Track arc
   const track = document.createElementNS(SVG_NS, "path");
   track.setAttribute("d", svgArcPath(ARC_START, ARC_SWEEP, DIAL_R));
   track.setAttribute("fill", "none");
-  track.setAttribute("stroke", "rgba(0,217,255,0.2)");
-  track.setAttribute("stroke-width", "3.5");
+  track.setAttribute("stroke", "rgba(0,217,255,0.22)");
+  track.setAttribute("stroke-width", "2");
   track.setAttribute("stroke-linecap", "round");
   svg.appendChild(track);
 
-  // Fill arc (current value)
+  // Fill arc
   const fillArc = document.createElementNS(SVG_NS, "path");
   fillArc.setAttribute("fill", "none");
   fillArc.setAttribute("stroke", "#00d9ff");
-  fillArc.setAttribute("stroke-width", "3.5");
+  fillArc.setAttribute("stroke-width", "2");
   fillArc.setAttribute("stroke-linecap", "round");
-  fillArc.style.filter = "drop-shadow(0 0 4px rgba(0,217,255,0.9))";
+  fillArc.style.filter = "drop-shadow(0 0 3px rgba(0,217,255,1))";
   svg.appendChild(fillArc);
 
-  // Tick marks
-  for (let i = 0; i <= 9; i++) {
-    const tickAngle = ARC_START + (i / 9) * ARC_SWEEP;
+  // Tick marks (7 ticks)
+  for (let i = 0; i <= 6; i++) {
+    const tickAngle = ARC_START + (i / 6) * ARC_SWEEP;
     const isMajor = i % 3 === 0;
-    const outer = DIAL_R + 8;
-    const inner = outer - (isMajor ? 5 : 3);
+    const outer = DIAL_R + 5;
+    const inner = outer - (isMajor ? 3 : 2);
     const [x1, y1] = polarXY(tickAngle, inner);
     const [x2, y2] = polarXY(tickAngle, outer);
     const tick = document.createElementNS(SVG_NS, "line");
-    tick.setAttribute("x1", x1.toFixed(2)); tick.setAttribute("y1", y1.toFixed(2));
-    tick.setAttribute("x2", x2.toFixed(2)); tick.setAttribute("y2", y2.toFixed(2));
-    tick.setAttribute("stroke", isMajor ? "rgba(0,217,255,0.6)" : "rgba(0,217,255,0.25)");
-    tick.setAttribute("stroke-width", isMajor ? "1.5" : "1");
+    tick.setAttribute("x1", x1.toFixed(1)); tick.setAttribute("y1", y1.toFixed(1));
+    tick.setAttribute("x2", x2.toFixed(1)); tick.setAttribute("y2", y2.toFixed(1));
+    tick.setAttribute("stroke", isMajor ? "rgba(0,217,255,0.65)" : "rgba(0,217,255,0.28)");
+    tick.setAttribute("stroke-width", isMajor ? "1" : "0.5");
     svg.appendChild(tick);
   }
 
   // Needle
   const needle = document.createElementNS(SVG_NS, "line");
   needle.setAttribute("stroke", "#00d9ff");
-  needle.setAttribute("stroke-width", "1.5");
+  needle.setAttribute("stroke-width", "1");
   needle.setAttribute("stroke-linecap", "round");
-  needle.style.filter = "drop-shadow(0 0 3px rgba(0,217,255,1))";
+  needle.style.filter = "drop-shadow(0 0 2px rgba(0,217,255,1))";
   svg.appendChild(needle);
 
   // Center dot
   const dot = document.createElementNS(SVG_NS, "circle");
-  dot.setAttribute("cx", DIAL_CX); dot.setAttribute("cy", DIAL_CY); dot.setAttribute("r", "3");
+  dot.setAttribute("cx", DIAL_CX); dot.setAttribute("cy", DIAL_CY); dot.setAttribute("r", "2");
   dot.setAttribute("fill", "#00d9ff");
-  dot.style.filter = "drop-shadow(0 0 4px rgba(0,217,255,1))";
+  dot.style.filter = "drop-shadow(0 0 3px rgba(0,217,255,1))";
   svg.appendChild(dot);
 
   wrapper.appendChild(svg);
 
-  const valueEl = document.createElement("div");
-  valueEl.className = "value";
-  wrapper.appendChild(valueEl);
+  // Tooltip with name + value, shown on hover
+  const tip = document.createElement("div");
+  tip.className = "dial-tip";
+  wrapper.appendChild(tip);
 
-  const label = document.createElement("label");
-  label.textContent = info.name || key;
-  wrapper.appendChild(label);
-
-  // Hidden input carries the value (tracked by [data-var])
+  // Hidden input carries the value
   const input = document.createElement("input");
   input.type = "hidden";
   input.dataset.var = key;
@@ -175,19 +184,19 @@ function buildDial(key, info, container) {
     const angle = valToArcAngle(val, minV, maxV);
     const used = angle - ARC_START;
     fillArc.setAttribute("d", used > 0.5 ? svgArcPath(ARC_START, used, DIAL_R) : "");
-    const [nx, ny] = polarXY(angle, DIAL_R - 3);
+    const [nx, ny] = polarXY(angle, DIAL_R - 2);
     needle.setAttribute("x1", DIAL_CX); needle.setAttribute("y1", DIAL_CY);
-    needle.setAttribute("x2", nx.toFixed(2)); needle.setAttribute("y2", ny.toFixed(2));
-    valueEl.textContent = formatValue(input, info);
+    needle.setAttribute("x2", nx.toFixed(1)); needle.setAttribute("y2", ny.toFixed(1));
+    const label = info.name || key;
+    tip.textContent = `${label}: ${formatValue(input, info)}`;
   }
 
   const initVal = info.type === "categorical" ? (info.valid_values?.[0] ?? minV) : minV;
   updateVisuals(initVal);
 
-  // Allow external setInputs() to trigger redraw
   input.addEventListener("change", () => updateVisuals(parseFloat(input.value)));
 
-  // Drag: rotate around center to set value
+  // Drag to rotate
   let dragging = false;
 
   function applyAngle(e) {
@@ -209,17 +218,29 @@ function buildDial(key, info, container) {
 }
 
 function buildInputs() {
-  const placed = new Set();
-  Object.entries(GROUPS).forEach(([, group]) => {
-    const container = document.getElementById(group.container);
-    if (!container) return;
-    group.keys.forEach(key => {
-      if (schema[key]) { buildDial(key, schema[key], container); placed.add(key); }
+  const container = document.getElementById("radial-machine");
+  if (!container) return;
+
+  SECTIONS.forEach(section => {
+    let keyIdx = 0;
+    section.rings.forEach(ring => {
+      for (let i = 0; i < ring.n; i++) {
+        // Skip schema-missing keys
+        while (keyIdx < section.keys.length && !schema[section.keys[keyIdx]]) keyIdx++;
+        if (keyIdx >= section.keys.length) break;
+        const key = section.keys[keyIdx++];
+
+        // Compute polar position
+        const startAng = section.centerAngle - section.spread / 2;
+        const step = ring.n > 1 ? section.spread / (ring.n - 1) : 0;
+        const angle = startAng + i * step;
+        const rad = angle * Math.PI / 180;
+        const x = RADIAL_CX + ring.r * Math.cos(rad);
+        const y = RADIAL_CY + ring.r * Math.sin(rad);
+
+        buildDial(key, schema[key], container, x, y);
+      }
     });
-  });
-  const fallback = document.getElementById("group-society");
-  Object.entries(schema).forEach(([key, info]) => {
-    if (!placed.has(key) && fallback) buildDial(key, info, fallback);
   });
 }
 

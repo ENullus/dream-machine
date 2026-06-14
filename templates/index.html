@@ -7,8 +7,7 @@
       <h1>SOCIETY DREAM MACHINE</h1>
       <p class="intro-text">
         A generative engine trained on <strong>1,291 human societies</strong> from the Ethnographic Atlas.
-        Adjust the dials to configure a civilisation's subsistence, environment, kinship, and political structure —
-        or let the machine dream one into existence.
+        Rotate the instruments — or let the machine dream a civilisation into existence.
       </p>
       <div class="action-row">
         <button id="btn-generate" class="btn primary">⚙ DREAM A SOCIETY</button>
@@ -17,35 +16,33 @@
     </div>
   </section>
 
-  <!-- MACHINE PANEL -->
-  <div class="machine-wrap">
-    <div class="machine-panel">
+  <!-- RADIAL MACHINE (dials injected by JS) -->
+  <div class="radial-machine-wrap">
+    <div id="radial-machine" class="radial-machine">
 
-      <div class="machine-section">
-        <div class="machine-section-label">SUBSISTENCE</div>
-        <div class="dial-group" id="group-subsistence"></div>
-      </div>
+      <!-- Background SVG: rings + section labels + decorative grid -->
+      <svg class="radial-bg-svg" viewBox="0 0 660 660" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ring guides at each dial radius -->
+        <circle cx="330" cy="330" r="105" fill="rgba(0,0,0,0.4)" stroke="rgba(0,217,255,0.22)" stroke-width="1.5"/>
+        <circle cx="330" cy="330" r="142" fill="none" stroke="rgba(0,217,255,0.09)" stroke-width="0.5" stroke-dasharray="3,7"/>
+        <circle cx="330" cy="330" r="198" fill="none" stroke="rgba(0,217,255,0.09)" stroke-width="0.5" stroke-dasharray="3,7"/>
+        <circle cx="330" cy="330" r="252" fill="none" stroke="rgba(0,217,255,0.07)" stroke-width="0.5" stroke-dasharray="3,7"/>
+        <circle cx="330" cy="330" r="300" fill="none" stroke="rgba(0,217,255,0.04)" stroke-width="0.5"/>
+        <!-- Cardinal dividers -->
+        <line x1="330" y1="25" x2="330" y2="635" stroke="rgba(0,217,255,0.07)" stroke-width="0.5"/>
+        <line x1="25" y1="330" x2="635" y2="330" stroke="rgba(0,217,255,0.07)" stroke-width="0.5"/>
+        <!-- Diagonal faint marks -->
+        <line x1="125" y1="125" x2="535" y2="535" stroke="rgba(0,217,255,0.03)" stroke-width="0.5"/>
+        <line x1="535" y1="125" x2="125" y2="535" stroke="rgba(0,217,255,0.03)" stroke-width="0.5"/>
+        <!-- Section labels on cardinal axes -->
+        <text x="330" y="16" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700">ENVIRONMENT</text>
+        <text x="648" y="334" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700" transform="rotate(90,648,334)">SUBSISTENCE</text>
+        <text x="330" y="653" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700">SOCIETY</text>
+        <text x="12" y="334" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700" transform="rotate(-90,12,334)">KINSHIP</text>
+      </svg>
 
-      <div class="machine-divider"></div>
-
-      <div class="machine-section">
-        <div class="machine-section-label">ENVIRONMENT</div>
-        <div class="dial-group" id="group-environment"></div>
-      </div>
-
-      <div class="machine-divider"></div>
-
-      <div class="machine-section">
-        <div class="machine-section-label">SOCIETY</div>
-        <div class="dial-group" id="group-society"></div>
-      </div>
-
-      <div class="machine-divider"></div>
-
-      <div class="machine-section">
-        <div class="machine-section-label">KINSHIP</div>
-        <div class="dial-group" id="group-kinship"></div>
-      </div>
+      <!-- Center core glow -->
+      <div class="radial-core"></div>
 
     </div>
   </div>
