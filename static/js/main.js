@@ -7,248 +7,210 @@ const vortex           = document.getElementById("vortex-overlay");
 const outputShell      = document.getElementById("output-shell");
 const narrativeEl      = document.getElementById("narrative");
 const complexityLabel  = document.getElementById("complexity-label");
+const cmSvg            = document.getElementById("cm-svg");
+const cmIdle           = document.getElementById("cm-idle");
+const cmHover          = document.getElementById("cm-hover");
+const cmHoverRing      = document.getElementById("cm-hover-ring");
+const cmHoverName      = document.getElementById("cm-hover-name");
+const cmHoverVal       = document.getElementById("cm-hover-val");
 
-// ── Radial machine layout ──────────────────────────────────────────────────
-const RADIAL_CX = 330;
-const RADIAL_CY = 330;
+const CX = 330, CY = 330;   // SVG centre
+const SVG_NS = "http://www.w3.org/2000/svg";
 
-// 4 sections, each centred on a cardinal axis, spreading 80° either side of that axis.
-// rings: [{r: radius, n: dials_in_this_ring}]
-const SECTIONS = [
+// ── Ring definitions (inside → outside) ──────────────────────────────────
+// Each ring has a 5° gap at its sectorStart so the ring label (at sectorStart−5°) is readable.
+// sectorStart=275° → label at 270° (top)  → ENVIRONMENT
+// sectorStart=5°   → label at 0°   (right) → SUBSISTENCE
+// sectorStart=95°  → label at 90°  (bottom)→ KINSHIP
+// sectorStart=185° → label at 180° (left)  → SOCIETY
+const RINGS = [
   {
-    id: 'subsistence', centerAngle: 0, spread: 80,
-    keys: ["EA001","EA002","EA003","EA004","EA005","EA042","EA028","EA029"],
-    rings: [{ r: 142, n: 4 }, { r: 198, n: 4 }]
-  },
-  {
-    id: 'environment', centerAngle: 270, spread: 80,
+    name: 'ENVIRONMENT', color: '#00d9ff',
+    innerR: 62, outerR: 102, sectorStart: 275,
     keys: ["AnnualMeanTemperature","MonthlyMeanPrecipitation","TemperatureConstancy",
-           "PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"],
-    rings: [{ r: 142, n: 3 }, { r: 198, n: 3 }]
+           "PrecipitationConstancy","TemperaturePredictability","PrecipitationPredictability"]
   },
   {
-    id: 'society', centerAngle: 90, spread: 80,
-    keys: ["EA033","EA030","EA070","EA065","EA066","EA067","EA068","EA069","EA073","EA076"],
-    rings: [{ r: 142, n: 4 }, { r: 198, n: 3 }, { r: 252, n: 3 }]
+    name: 'SUBSISTENCE', color: '#00d9ff',
+    innerR: 108, outerR: 155, sectorStart: 5,
+    keys: ["EA001","EA002","EA003","EA004","EA005","EA042","EA028","EA029"]
   },
   {
-    id: 'kinship', centerAngle: 180, spread: 80,
-    keys: ["EA043","EA008","EA009","EA010","EA011","EA012","EA017","EA018","EA019","EA020"],
-    rings: [{ r: 142, n: 4 }, { r: 198, n: 3 }, { r: 252, n: 3 }]
+    name: 'KINSHIP', color: '#00d9ff',
+    innerR: 161, outerR: 216, sectorStart: 95,
+    keys: ["EA043","EA008","EA009","EA010","EA011","EA012","EA017","EA018","EA019","EA020"]
+  },
+  {
+    name: 'SOCIETY', color: '#00d9ff',
+    innerR: 222, outerR: 285, sectorStart: 185,
+    keys: ["EA033","EA030","EA070","EA065","EA066","EA067","EA068","EA069","EA073","EA076"]
   }
 ];
 
-// ── Circular sundial dial constants ────────────────────────────────────────
-// Arc from 135° (7:30, bottom-left) clockwise 270° to 45° (4:30, bottom-right)
-const DIAL_SIZE = 44;
-const DIAL_R    = 14;
-const DIAL_CX   = DIAL_SIZE / 2;
-const DIAL_CY   = DIAL_SIZE / 2;
-const ARC_START = 135;
-const ARC_SWEEP = 270;
-const SVG_NS = "http://www.w3.org/2000/svg";
+// ── Geometry helpers ──────────────────────────────────────────────────────
+function toRad(deg) { return deg * Math.PI / 180; }
 
-function polarXY(deg, r) {
-  const rad = deg * Math.PI / 180;
-  return [DIAL_CX + r * Math.cos(rad), DIAL_CY + r * Math.sin(rad)];
+function annularSector(innerR, outerR, startDeg, endDeg) {
+  if (Math.abs(endDeg - startDeg) < 0.05) return "";
+  const s = toRad(startDeg), e = toRad(endDeg);
+  const sweep = endDeg - startDeg;
+  const large = sweep > 180 ? 1 : 0;
+  const xi1 = CX + innerR * Math.cos(s), yi1 = CY + innerR * Math.sin(s);
+  const xi2 = CX + innerR * Math.cos(e), yi2 = CY + innerR * Math.sin(e);
+  const xo1 = CX + outerR * Math.cos(s), yo1 = CY + outerR * Math.sin(s);
+  const xo2 = CX + outerR * Math.cos(e), yo2 = CY + outerR * Math.sin(e);
+  return `M${f(xi1)},${f(yi1)} A${innerR},${innerR} 0 ${large} 1 ${f(xi2)},${f(yi2)} L${f(xo2)},${f(yo2)} A${outerR},${outerR} 0 ${large} 0 ${f(xo1)},${f(yo1)} Z`;
 }
 
-function svgArcPath(startDeg, sweepDeg, r) {
-  if (Math.abs(sweepDeg) < 0.5) return "";
-  const endDeg = startDeg + sweepDeg;
-  const [x1, y1] = polarXY(startDeg, r);
-  const [x2, y2] = polarXY(endDeg, r);
-  const largeArc = Math.abs(sweepDeg) > 180 ? 1 : 0;
-  const sweepFlag = sweepDeg > 0 ? 1 : 0;
-  return `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${largeArc} ${sweepFlag} ${x2.toFixed(2)},${y2.toFixed(2)}`;
-}
+function f(n) { return n.toFixed(2); }
 
-function valToArcAngle(val, minV, maxV) {
-  const t = maxV > minV ? (val - minV) / (maxV - minV) : 0;
-  return ARC_START + Math.max(0, Math.min(1, t)) * ARC_SWEEP;
-}
+// ── Global drag state ─────────────────────────────────────────────────────
+let activeSector = null;
 
-function mouseAngleDeg(e, el) {
-  const rect = el.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  let deg = Math.atan2(clientY - cy, clientX - cx) * 180 / Math.PI;
+cmSvg.addEventListener("mousemove", e => {
+  if (!activeSector) return;
+  activeSector.onDrag(e);
+});
+document.addEventListener("mouseup", () => { activeSector = null; cmSvg.style.cursor = ''; });
+cmSvg.addEventListener("touchmove", e => {
+  if (!activeSector) return;
+  activeSector.onDrag(e);
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener("touchend", () => { activeSector = null; });
+
+function svgAngle(e) {
+  const rect = cmSvg.getBoundingClientRect();
+  const sx = 660 / rect.width, sy = 660 / rect.height;
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy2 = e.touches ? e.touches[0].clientY : e.clientY;
+  let deg = Math.atan2((cy2 - rect.top) * sy - CY, (cx - rect.left) * sx - CX) * 180 / Math.PI;
   if (deg < 0) deg += 360;
   return deg;
 }
 
-function buildDial(key, info, container, posX, posY) {
-  if (!info) return;
+// ── Build rings ────────────────────────────────────────────────────────────
+function buildRing(ring) {
+  const keys = ring.keys.filter(k => schema[k]);
+  if (!keys.length) return;
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "dial";
-  // Absolute position within radial-machine, centred on the computed point
-  wrapper.style.cssText = `position:absolute;left:${posX}px;top:${posY}px;transform:translate(-50%,-50%)`;
+  const n = keys.length;
+  const nominalAngle = 360 / n;      // degrees per sector (including gap)
+  const sectorGap    = 2;            // degrees between sectors
+  const fillSpan     = nominalAngle - sectorGap; // effective fill degrees
 
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${DIAL_SIZE} ${DIAL_SIZE}`);
-  svg.setAttribute("width", DIAL_SIZE);
-  svg.setAttribute("height", DIAL_SIZE);
-  svg.style.cssText = "overflow:visible;display:block;cursor:pointer;user-select:none;touch-action:none;-webkit-user-select:none";
+  keys.forEach((key, i) => {
+    const info = schema[key];
+    const startDeg = ring.sectorStart + i * nominalAngle;
+    const endDeg   = startDeg + fillSpan;
 
-  // Background circle
-  const bg = document.createElementNS(SVG_NS, "circle");
-  bg.setAttribute("cx", DIAL_CX); bg.setAttribute("cy", DIAL_CY); bg.setAttribute("r", DIAL_R + 4);
-  bg.setAttribute("fill", "rgba(0,0,0,0.65)");
-  bg.setAttribute("stroke", "rgba(0,217,255,0.14)");
-  bg.setAttribute("stroke-width", "0.5");
-  svg.appendChild(bg);
+    // Background (track) sector
+    const bgEl = document.createElementNS(SVG_NS, "path");
+    bgEl.setAttribute("d", annularSector(ring.innerR, ring.outerR, startDeg, endDeg));
+    bgEl.setAttribute("fill", "rgba(0,0,0,0.45)");
+    bgEl.setAttribute("stroke", "rgba(0,217,255,0.18)");
+    bgEl.setAttribute("stroke-width", "0.5");
+    bgEl.style.cursor = "pointer";
+    cmSvg.appendChild(bgEl);
 
-  // Track arc
-  const track = document.createElementNS(SVG_NS, "path");
-  track.setAttribute("d", svgArcPath(ARC_START, ARC_SWEEP, DIAL_R));
-  track.setAttribute("fill", "none");
-  track.setAttribute("stroke", "rgba(0,217,255,0.22)");
-  track.setAttribute("stroke-width", "2");
-  track.setAttribute("stroke-linecap", "round");
-  svg.appendChild(track);
+    // Fill sector (value)
+    const fillEl = document.createElementNS(SVG_NS, "path");
+    fillEl.setAttribute("fill", "rgba(0,217,255,0.28)");
+    fillEl.setAttribute("stroke", "#00d9ff");
+    fillEl.setAttribute("stroke-width", "0.8");
+    fillEl.style.cssText = "cursor:pointer;filter:drop-shadow(0 0 4px rgba(0,217,255,0.6))";
+    cmSvg.appendChild(fillEl);
 
-  // Fill arc
-  const fillArc = document.createElementNS(SVG_NS, "path");
-  fillArc.setAttribute("fill", "none");
-  fillArc.setAttribute("stroke", "#00d9ff");
-  fillArc.setAttribute("stroke-width", "2");
-  fillArc.setAttribute("stroke-linecap", "round");
-  fillArc.style.filter = "drop-shadow(0 0 3px rgba(0,217,255,1))";
-  svg.appendChild(fillArc);
+    // Hidden input
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.dataset.var = key;
+    if (info.type === "categorical") {
+      input.dataset.validValues = JSON.stringify(info.valid_values || []);
+      input.dataset.labels      = JSON.stringify(info.labels      || {});
+    }
+    document.getElementById("cm-machine").appendChild(input);
 
-  // Tick marks (7 ticks)
-  for (let i = 0; i <= 6; i++) {
-    const tickAngle = ARC_START + (i / 6) * ARC_SWEEP;
-    const isMajor = i % 3 === 0;
-    const outer = DIAL_R + 5;
-    const inner = outer - (isMajor ? 3 : 2);
-    const [x1, y1] = polarXY(tickAngle, inner);
-    const [x2, y2] = polarXY(tickAngle, outer);
-    const tick = document.createElementNS(SVG_NS, "line");
-    tick.setAttribute("x1", x1.toFixed(1)); tick.setAttribute("y1", y1.toFixed(1));
-    tick.setAttribute("x2", x2.toFixed(1)); tick.setAttribute("y2", y2.toFixed(1));
-    tick.setAttribute("stroke", isMajor ? "rgba(0,217,255,0.65)" : "rgba(0,217,255,0.28)");
-    tick.setAttribute("stroke-width", isMajor ? "1" : "0.5");
-    svg.appendChild(tick);
-  }
+    // Value state
+    let minV, maxV, step;
+    if (info.type === "categorical") {
+      minV = Math.min(...info.valid_values);
+      maxV = Math.max(...info.valid_values);
+      step = 1;
+    } else {
+      minV = info.min ?? 0;
+      maxV = info.max ?? 1;
+      step = info.type === "continuous" ? 0.1 : 1;
+    }
 
-  // Needle
-  const needle = document.createElementNS(SVG_NS, "line");
-  needle.setAttribute("stroke", "#00d9ff");
-  needle.setAttribute("stroke-width", "1");
-  needle.setAttribute("stroke-linecap", "round");
-  needle.style.filter = "drop-shadow(0 0 2px rgba(0,217,255,1))";
-  svg.appendChild(needle);
-
-  // Center dot
-  const dot = document.createElementNS(SVG_NS, "circle");
-  dot.setAttribute("cx", DIAL_CX); dot.setAttribute("cy", DIAL_CY); dot.setAttribute("r", "2");
-  dot.setAttribute("fill", "#00d9ff");
-  dot.style.filter = "drop-shadow(0 0 3px rgba(0,217,255,1))";
-  svg.appendChild(dot);
-
-  wrapper.appendChild(svg);
-
-  // Tooltip with name + value, shown on hover
-  const tip = document.createElement("div");
-  tip.className = "dial-tip";
-  wrapper.appendChild(tip);
-
-  // Hidden input carries the value
-  const input = document.createElement("input");
-  input.type = "hidden";
-  input.dataset.var = key;
-  if (info.type === "categorical") {
-    input.dataset.validValues = JSON.stringify(info.valid_values || []);
-    input.dataset.labels = JSON.stringify(info.labels || {});
-  }
-  wrapper.appendChild(input);
-
-  let minV, maxV, step;
-  if (info.type === "categorical") {
-    minV = Math.min(...info.valid_values);
-    maxV = Math.max(...info.valid_values);
-    step = 1;
-  } else {
-    minV = info.min ?? 0;
-    maxV = info.max ?? 1;
-    step = info.type === "continuous" ? 0.1 : 1;
-  }
-
-  function updateVisuals(rawVal) {
-    const val = Math.max(minV, Math.min(maxV, Math.round(rawVal / step) * step));
-    input.value = val;
-    const angle = valToArcAngle(val, minV, maxV);
-    const used = angle - ARC_START;
-    fillArc.setAttribute("d", used > 0.5 ? svgArcPath(ARC_START, used, DIAL_R) : "");
-    const [nx, ny] = polarXY(angle, DIAL_R - 2);
-    needle.setAttribute("x1", DIAL_CX); needle.setAttribute("y1", DIAL_CY);
-    needle.setAttribute("x2", nx.toFixed(1)); needle.setAttribute("y2", ny.toFixed(1));
-    const label = info.name || key;
-    tip.textContent = `${label}: ${formatValue(input, info)}`;
-  }
-
-  const initVal = info.type === "categorical" ? (info.valid_values?.[0] ?? minV) : minV;
-  updateVisuals(initVal);
-
-  input.addEventListener("change", () => updateVisuals(parseFloat(input.value)));
-
-  // Drag to rotate
-  let dragging = false;
-
-  function applyAngle(e) {
-    const deg = mouseAngleDeg(e, svg);
-    let rel = ((deg - ARC_START) % 360 + 360) % 360;
-    if (rel > ARC_SWEEP + 45) rel = 0;
-    else if (rel > ARC_SWEEP) rel = ARC_SWEEP;
-    updateVisuals(minV + (rel / ARC_SWEEP) * (maxV - minV));
-  }
-
-  svg.addEventListener("mousedown", e => { dragging = true; applyAngle(e); e.preventDefault(); });
-  window.addEventListener("mousemove", e => { if (dragging) applyAngle(e); });
-  window.addEventListener("mouseup", () => { dragging = false; });
-  svg.addEventListener("touchstart", e => { dragging = true; applyAngle(e); e.preventDefault(); }, { passive: false });
-  svg.addEventListener("touchmove", e => { if (dragging) { applyAngle(e); e.preventDefault(); } }, { passive: false });
-  svg.addEventListener("touchend", () => { dragging = false; });
-
-  container.appendChild(wrapper);
-}
-
-function buildInputs() {
-  const container = document.getElementById("radial-machine");
-  if (!container) return;
-
-  SECTIONS.forEach(section => {
-    let keyIdx = 0;
-    section.rings.forEach(ring => {
-      for (let i = 0; i < ring.n; i++) {
-        // Skip schema-missing keys
-        while (keyIdx < section.keys.length && !schema[section.keys[keyIdx]]) keyIdx++;
-        if (keyIdx >= section.keys.length) break;
-        const key = section.keys[keyIdx++];
-
-        // Compute polar position
-        const startAng = section.centerAngle - section.spread / 2;
-        const step = ring.n > 1 ? section.spread / (ring.n - 1) : 0;
-        const angle = startAng + i * step;
-        const rad = angle * Math.PI / 180;
-        const x = RADIAL_CX + ring.r * Math.cos(rad);
-        const y = RADIAL_CY + ring.r * Math.sin(rad);
-
-        buildDial(key, schema[key], container, x, y);
+    function updateFill(raw) {
+      const val = Math.max(minV, Math.min(maxV, Math.round(raw / step) * step));
+      input.value = val;
+      const t = maxV > minV ? (val - minV) / (maxV - minV) : 0;
+      const usedDeg = t * fillSpan;
+      fillEl.setAttribute("d", usedDeg > 0.2 ? annularSector(ring.innerR, ring.outerR, startDeg, startDeg + usedDeg) : "");
+      // Update hover display if this sector is hovered
+      if (cmHover.style.display !== "none" && cmHoverName.textContent === (info.name || key)) {
+        cmHoverVal.textContent = formatValue(input, info);
       }
+    }
+
+    const initVal = info.type === "categorical" ? (info.valid_values?.[0] ?? minV) : minV;
+    updateFill(initVal);
+
+    input.addEventListener("change", () => updateFill(parseFloat(input.value)));
+
+    // Drag handler: angle within the sector maps to value
+    function onDrag(e) {
+      const angle = svgAngle(e);
+      let rel = ((angle - startDeg) % 360 + 360) % 360;
+      if (rel > fillSpan + 30) rel = 0;
+      else if (rel > fillSpan) rel = fillSpan;
+      updateFill(minV + (rel / fillSpan) * (maxV - minV));
+    }
+
+    function showHover() {
+      cmIdle.style.display  = "none";
+      cmHover.style.display = "block";
+      cmHoverRing.textContent = ring.name;
+      cmHoverName.textContent = info.name || key;
+      cmHoverVal.textContent  = formatValue(input, info);
+    }
+
+    function hideHover() {
+      cmIdle.style.display  = "block";
+      cmHover.style.display = "none";
+    }
+
+    [bgEl, fillEl].forEach(el => {
+      el.addEventListener("mouseenter", showHover);
+      el.addEventListener("mouseleave", () => { if (!activeSector) hideHover(); });
+      el.addEventListener("mousedown", ev => {
+        activeSector = { onDrag, showHover };
+        cmSvg.style.cursor = "grabbing";
+        onDrag(ev);
+        showHover();
+        ev.preventDefault();
+      });
+      el.addEventListener("touchstart", ev => {
+        activeSector = { onDrag, showHover };
+        onDrag(ev);
+        showHover();
+        ev.preventDefault();
+      }, { passive: false });
     });
   });
+}
+
+// ── Inputs wiring ──────────────────────────────────────────────────────────
+function buildInputs() {
+  RINGS.forEach(buildRing);
 }
 
 function getInputs() {
   const values = {};
   document.querySelectorAll("[data-var]").forEach(el => {
-    const key = el.dataset.var;
-    const info = schema[key];
+    const key = el.dataset.var, info = schema[key];
     if (!info) return;
     values[key] = info.type === "categorical"
       ? parseInt(el.value, 10)
@@ -266,6 +228,7 @@ function setInputs(values) {
   });
 }
 
+// ── Output reveal ─────────────────────────────────────────────────────────
 function revealOutput(data) {
   narrativeEl.textContent = data.description || "No narrative generated.";
   if (complexityLabel && data.complexity !== undefined) {
@@ -276,9 +239,10 @@ function revealOutput(data) {
   setTimeout(() => outputShell.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
 }
 
+// ── API calls ─────────────────────────────────────────────────────────────
 async function generate() {
   showVortex(true);
-  const res = await fetch("/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  const res  = await fetch("/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
   const data = await res.json();
   showVortex(false);
   if (!res.ok) return;
@@ -289,17 +253,18 @@ async function generate() {
 async function generateFromDials() {
   showVortex(true);
   const payload = getInputs();
-  const res = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const res  = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
   showVortex(false);
   if (!res.ok) return;
   setTimeout(() => revealOutput(data), 400);
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────
 function formatValue(input, info) {
   if (info.type === "categorical") {
     const labels = JSON.parse(input.dataset.labels || "{}");
-    const val = parseInt(input.value, 10);
+    const val    = parseInt(input.value, 10);
     return labels[val] || String(val);
   }
   const v = parseFloat(input.value);

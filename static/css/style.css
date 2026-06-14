@@ -1111,10 +1111,6 @@ h2 {
   100% { transform: translateY(0) translateX(0); }
 }
 
-@keyframes dialAppear {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
 
 /* ======================================================
    INTRO MODULE
@@ -1190,91 +1186,83 @@ h2 {
 }
 
 /* ======================================================
-   RADIAL MACHINE
+   CONCENTRIC RING MACHINE
    ====================================================== */
-.radial-machine-wrap {
+.cm-wrap {
   display: flex;
   justify-content: center;
   margin: 1.5rem auto 3rem;
   padding: 0 1rem;
 }
 
-.radial-machine {
+#cm-machine {
   position: relative;
   width: 660px;
   height: 660px;
   flex-shrink: 0;
 }
 
-.radial-bg-svg {
+#cm-svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Glowing core at center */
-.radial-core {
+/* Centre info overlay */
+.cm-center {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 90px;
-  height: 90px;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,217,255,0.12) 0%, transparent 65%);
-  border: 1px solid rgba(0,217,255,0.28);
-  box-shadow:
-    0 0 20px rgba(0,217,255,0.15),
-    inset 0 0 15px rgba(0,217,255,0.08);
+  width: 110px;
+  text-align: center;
   pointer-events: none;
 }
 
-.radial-core::before {
-  content: "";
-  position: absolute;
-  inset: 8px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,217,255,0.15);
-}
-
-/* Individual dials (absolutely positioned within .radial-machine) */
-.dial {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  opacity: 0;
-  animation: dialAppear 0.5s ease-out forwards;
-}
-
-.dial-tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  border: 1px solid rgba(0,217,255,0.3);
-  color: var(--accent);
-  font-family: "Rajdhani", monospace;
+.cm-idle-title {
+  font-family: "Orbitron", monospace;
   font-size: 0.55rem;
-  letter-spacing: 0.5px;
-  padding: 3px 6px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 10;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: rgba(0,217,255,0.5);
+  line-height: 1.5;
+  text-shadow: 0 0 12px rgba(0,217,255,0.4);
 }
 
-.dial:hover .dial-tip { opacity: 1; }
+.cm-hover { line-height: 1.4; }
 
-/* Mobile: scale down the radial machine */
+.cm-hover-ring {
+  font-family: "Orbitron", monospace;
+  font-size: 0.42rem;
+  letter-spacing: 2px;
+  color: rgba(0,217,255,0.5);
+  margin-bottom: 3px;
+}
+
+.cm-hover-name {
+  font-family: "Rajdhani", monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(200,215,225,0.9);
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+.cm-hover-val {
+  font-family: "Orbitron", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(0,217,255,0.6);
+}
+
+/* Mobile: scale down */
 @media (max-width: 720px) {
-  .radial-machine {
-    width: 340px;
-    height: 340px;
+  #cm-machine {
     transform: scale(0.52);
     transform-origin: top center;
     margin-bottom: -315px;

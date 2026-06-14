@@ -7,7 +7,7 @@
       <h1>SOCIETY DREAM MACHINE</h1>
       <p class="intro-text">
         A generative engine trained on <strong>1,291 human societies</strong> from the Ethnographic Atlas.
-        Rotate the instruments — or let the machine dream a civilisation into existence.
+        Drag the ring slices to configure a civilisation — or let the machine dream.
       </p>
       <div class="action-row">
         <button id="btn-generate" class="btn primary">⚙ DREAM A SOCIETY</button>
@@ -16,33 +16,33 @@
     </div>
   </section>
 
-  <!-- RADIAL MACHINE (dials injected by JS) -->
-  <div class="radial-machine-wrap">
-    <div id="radial-machine" class="radial-machine">
+  <!-- CONCENTRIC RING MACHINE -->
+  <div class="cm-wrap">
+    <div id="cm-machine">
 
-      <!-- Background SVG: rings + section labels + decorative grid -->
-      <svg class="radial-bg-svg" viewBox="0 0 660 660" xmlns="http://www.w3.org/2000/svg">
-        <!-- Ring guides at each dial radius -->
-        <circle cx="330" cy="330" r="105" fill="rgba(0,0,0,0.4)" stroke="rgba(0,217,255,0.22)" stroke-width="1.5"/>
-        <circle cx="330" cy="330" r="142" fill="none" stroke="rgba(0,217,255,0.09)" stroke-width="0.5" stroke-dasharray="3,7"/>
-        <circle cx="330" cy="330" r="198" fill="none" stroke="rgba(0,217,255,0.09)" stroke-width="0.5" stroke-dasharray="3,7"/>
-        <circle cx="330" cy="330" r="252" fill="none" stroke="rgba(0,217,255,0.07)" stroke-width="0.5" stroke-dasharray="3,7"/>
-        <circle cx="330" cy="330" r="300" fill="none" stroke="rgba(0,217,255,0.04)" stroke-width="0.5"/>
-        <!-- Cardinal dividers -->
-        <line x1="330" y1="25" x2="330" y2="635" stroke="rgba(0,217,255,0.07)" stroke-width="0.5"/>
-        <line x1="25" y1="330" x2="635" y2="330" stroke="rgba(0,217,255,0.07)" stroke-width="0.5"/>
-        <!-- Diagonal faint marks -->
-        <line x1="125" y1="125" x2="535" y2="535" stroke="rgba(0,217,255,0.03)" stroke-width="0.5"/>
-        <line x1="535" y1="125" x2="125" y2="535" stroke="rgba(0,217,255,0.03)" stroke-width="0.5"/>
-        <!-- Section labels on cardinal axes -->
-        <text x="330" y="16" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700">ENVIRONMENT</text>
-        <text x="648" y="334" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700" transform="rotate(90,648,334)">SUBSISTENCE</text>
-        <text x="330" y="653" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700">SOCIETY</text>
-        <text x="12" y="334" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-family="Orbitron,monospace" font-size="8" letter-spacing="3" font-weight="700" transform="rotate(-90,12,334)">KINSHIP</text>
+      <svg id="cm-svg" viewBox="0 0 660 660" xmlns="http://www.w3.org/2000/svg">
+        <!-- Decorative guide circles -->
+        <circle cx="330" cy="330" r="58"  fill="rgba(0,0,0,0.55)" stroke="rgba(0,217,255,0.25)" stroke-width="1"/>
+        <circle cx="330" cy="330" r="57"  fill="none" stroke="rgba(0,217,255,0.1)" stroke-width="0.5" stroke-dasharray="2,4"/>
+        <!-- Ring track placeholders drawn by JS -->
+        <!-- Ring labels (outside, on 4 axes) -->
+        <text x="330" y="12"  text-anchor="middle" fill="rgba(0,217,255,0.4)" font-family="Orbitron,monospace" font-size="7.5" letter-spacing="2.5" font-weight="700">ENVIRONMENT</text>
+        <text x="652" y="332" text-anchor="middle" fill="rgba(0,217,255,0.4)" font-family="Orbitron,monospace" font-size="7.5" letter-spacing="2.5" font-weight="700" transform="rotate(90,652,332)">SUBSISTENCE</text>
+        <text x="330" y="653" text-anchor="middle" fill="rgba(0,217,255,0.4)" font-family="Orbitron,monospace" font-size="7.5" letter-spacing="2.5" font-weight="700">KINSHIP</text>
+        <text x="8"   y="332" text-anchor="middle" fill="rgba(0,217,255,0.4)" font-family="Orbitron,monospace" font-size="7.5" letter-spacing="2.5" font-weight="700" transform="rotate(-90,8,332)">SOCIETY</text>
       </svg>
 
-      <!-- Center core glow -->
-      <div class="radial-core"></div>
+      <!-- Center info overlay -->
+      <div class="cm-center">
+        <div id="cm-idle" class="cm-idle">
+          <div class="cm-idle-title">DREAM<br>MACHINE</div>
+        </div>
+        <div id="cm-hover" class="cm-hover" style="display:none">
+          <div id="cm-hover-ring" class="cm-hover-ring"></div>
+          <div id="cm-hover-name" class="cm-hover-name"></div>
+          <div id="cm-hover-val"  class="cm-hover-val"></div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -53,7 +53,6 @@
       <h1>OUTPUT STREAM</h1>
       <p class="subtitle" id="complexity-label"></p>
     </div>
-
     <div class="report-core">
       <div class="report-frame">
         <div class="report-glow"></div>
@@ -63,7 +62,6 @@
         </div>
       </div>
     </div>
-
     <div class="report-actions">
       <button id="btn-regenerate" class="btn">⚙ NEW RANDOM SOCIETY</button>
     </div>
@@ -85,7 +83,5 @@
     <div class="vortex-ring ring-5"></div>
   </div>
 
-  <script>
-    window.__SCHEMA__ = {{ schema_json | safe }};
-  </script>
+  <script>window.__SCHEMA__ = {{ schema_json | safe }};</script>
 {% endblock %}
