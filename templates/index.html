@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="container">
+    <div class="header-block">
+      <h1>DREAM MACHINE</h1>
+    </div>
+    <div class="action-row">
+      <button id="btn-generate" class="btn">GENERATE RANDOM SOCIETY</button>
+      <button id="btn-generate-dials" class="btn">GENERATE FROM DIALS</button>
+      <button id="btn-voice" class="btn ghost">VOICE: OFF</button>
+    </div>
+  </section>
+
+  <div class="sector-header">SECTOR: INPUT DIALS</div>
+
+  <section class="container">
+    <div id="input-grid" class="grid"></div>
+  </section>
+
+  <div class="sector-header">SECTOR: GENERATED OUTPUT</div>
+
+  <section id="output-panel" class="container output-panel">
+    <div class="card">
+      <h2>OUTPUT REPORT</h2>
+      <pre id="narrative" class="narrative">Awaiting generation...</pre>
+    </div>
+  </section>
+
+  <div class="ambient-particles"></div>
+
+  <div id="vortex-overlay" class="vortex hidden">
+    <div class="vortex-flash"></div>
+    <div class="vortex-scan"></div>
+    <div class="vortex-particles"></div>
+    <div class="vortex-burst"></div>
+    <div class="vortex-burst-2"></div>
+    <div class="vortex-core"></div>
+    <div class="vortex-ring ring-1"></div>
+    <div class="vortex-ring ring-2"></div>
+    <div class="vortex-ring ring-3"></div>
+    <div class="vortex-ring ring-4"></div>
+    <div class="vortex-ring ring-5"></div>
+  </div>
+
+  <script>
+    window.__SCHEMA__ = {{ schema_json | safe }};
+  </script>
+{% endblock %}

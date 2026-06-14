@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="report-shell intro-locked">
+    <div class="report-header">
+      <h1>DREAM MACHINE</h1>
+      <p class="subtitle">OUTPUT STREAM</p>
+    </div>
+
+    <div class="report-core">
+      <div class="report-frame">
+        <div class="report-glow"></div>
+        <div class="report-body">
+          <h2>GENERATED SOCIETY</h2>
+          <pre id="report-text" class="narrative">Initializing...</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-actions">
+      <button id="btn-back" class="btn ghost">BACK TO DIALS</button>
+      <button id="btn-regenerate" class="btn">NEW RANDOM SOCIETY</button>
+      <button id="btn-voice-report" class="btn ghost">VOICE: OFF</button>
+    </div>
+  </section>
+
+  <div class="ambient-particles"></div>
+
+  <div id="vortex-overlay" class="vortex hidden">
+    <div class="vortex-flash"></div>
+    <div class="vortex-scan"></div>
+    <div class="vortex-particles"></div>
+    <div class="vortex-burst"></div>
+    <div class="vortex-burst-2"></div>
+    <div class="vortex-core"></div>
+    <div class="vortex-ring ring-1"></div>
+    <div class="vortex-ring ring-2"></div>
+    <div class="vortex-ring ring-3"></div>
+    <div class="vortex-ring ring-4"></div>
+    <div class="vortex-ring ring-5"></div>
+  </div>
+
+  <script src="/static/js/report.js"></script>
+{% endblock %}

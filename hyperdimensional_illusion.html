@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hyperdimensional Illusion</title>
+<style>
+* { margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+#hud {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+}
+#info {
+    color: rgba(255,255,255,0.55); font: 14px/2.1 monospace;
+    text-align: center; transition: opacity 0.6s;
+}
+#status {
+    position: fixed; top: 8px; left: 10px;
+    color: #0f0; font: 11px monospace; white-space: pre-wrap;
+    pointer-events: none; transition: opacity 1s; max-width: 80%;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><div id="info">
+    click to enter<br>
+    WASD move &middot; mouse look<br>
+    Q / E &nbsp;shift through the 4th dimension<br>
+    space up &middot; shift down + fast<br>
+    [ ] render quality &middot; F fullscreen
+</div></div>
+<div id="status">starting...</div>
+<script>
+"use strict";
+
+const canvas = document.getElementById('c');
+const info   = document.getElementById('info');
+const status = document.getElementById('status');
+
+const gl = canvas.getContext('webgl2', {
+    antialias: false, alpha: false,
+    powerPreference: 'high-performance'
+});
+if (!gl) {
+    status.textContent = 'WebGL 2 not available';
+    status.style.color = '#f44';
+    throw 0;
+}
+
+const gpu = gl.getParameter(gl.RENDERER);
+status.textContent = 'GPU: ' + gpu;
+console.log('GPU:', gpu);
+
+// ----------------------------------------------------------------
+//  Shaders
+// ----------------------------------------------------------------
+
+const VERT = `#version 300 es
+layout(location=0) in vec2 pos;
+out vec2 vUV;
+void main() { vUV = pos; gl_Position = vec4(pos, 0, 1); }`;
+
+const FRAG = `#version 300 es
+precision highp float;
+
+uniform vec2  uRes;
+uniform vec3  uCamPos;
+uniform float uCamW;
+uniform mat3  uCamMat;
+
+out vec4 oColor;
+
+// Power-8 Mandelbulb with a per-iteration rotation controlled by W.
+// W continuously warps the fractal's interior -- like moving
+// through a 4th spatial dimension that reshapes everything.
+
+float mandelbulb(vec3 pos) {
+    vec3 z = pos;
+    float dr = 1.0;
+    float r  = 0.0;
+    float power = 8.0;
+
+    float wa = uCamW * 0.18;
+    float wc = cos(wa), ws = sin(wa);
+
+    for (int i = 0; i < 6; i++) {
+        r = length(z);
+        if (r > 3.5) break;
+
+        float theta = acos(clamp(z.z / r, -1.0, 1.0));
+        float phi   = atan(z.y, z.x);
+        dr = pow(r, power - 1.0) * power * dr + 1.0;
+
+        float zr = pow(r, power);
+        theta *= power;
+        phi   *= power;
+
+        z = zr * vec3(
+            sin(theta) * cos(phi),
+            sin(theta) * sin(phi),
+            cos(theta)
+        );
+
+        // 4D warp: rotate XY plane by an amount driven by W
+        float nx = wc * z.x - ws * z.y;
+        float ny = ws * z.x + wc * z.y;
+        z.x = nx; z.y = ny;
+
+        z += pos;
+    }
+    r = length(z);
+    return 0.5 * log(r) * r / dr;
+}
+
+float map(vec3 p) { return mandelbulb(p); }
+
+vec3 calcNormal(vec3 p) {
+    vec2 e = vec2(0.0005, 0.0);
+    return normalize(vec3(
+        map(p + e.xyy) - map(p - e.xyy),
+        map(p + e.yxy) - map(p - e.yxy),
+        map(p + e.yyx) - map(p - e.yyx)
+    ));
+}
+
+vec3 getColor(vec3 pos) {
+    vec3 z = pos;
+    float r;
+    float power = 8.0;
+    float wa = uCamW * 0.18;
+    float wc = cos(wa), ws = sin(wa);
+    float trap = 1e10;
+
+    for (int i = 0; i < 6; i++) {
+        r = length(z);
+        if (r > 3.5) break;
+        trap = min(trap, r);
+
+        float theta = acos(clamp(z.z / r, -1.0, 1.0));
+        float phi   = atan(z.y, z.x);
+        float zr    = pow(r, power);
+        theta *= power;
+        phi   *= power;
+        z = zr * vec3(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
+        float nx = wc*z.x - ws*z.y;
+        float ny = ws*z.x + wc*z.y;
+        z.x = nx; z.y = ny;
+        z += pos;
+    }
+
+    float t = clamp(trap * 0.7, 0.0, 1.0);
+    return 0.5 + 0.5 * cos(6.2832 * (vec3(0.8, 0.85, 1.0) * t + vec3(0.0, 0.12, 0.28)));
+}
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / uRes;
+    vec2 ndc = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
+
+    vec3 rd = normalize(uCamMat * vec3(ndc, 1.5));
+    vec3 ro = uCamPos;
+
+    float t    = 0.0;
+    float glow = 0.0;
+    int   hitSteps = 0;
+    bool  hit = false;
+
+    for (int i = 0; i < 64; i++) {
+        vec3 p = ro + rd * t;
+        float d = map(p);
+        glow += 0.012 / (abs(d) + 0.005);
+        if (d < 0.0005 * (1.0 + t * 0.2)) { hit = true; hitSteps = i; break; }
+        t += d;
+        hitSteps = i;
+        if (t > 20.0) break;
+    }
+
+    // Background: faint void gradient
+    vec3 col = vec3(0.01, 0.006, 0.025) + rd.y * 0.01;
+
+    if (hit) {
+        vec3 p = ro + rd * t;
+        vec3 n = calcNormal(p);
+        vec3 base = getColor(p);
+
+        vec3 ld   = normalize(vec3(0.6, 0.8, -0.3));
+        float diff = max(dot(n, ld), 0.0) * 0.6;
+        float amb  = 0.2;
+        float ao   = 1.0 - float(hitSteps) / 64.0;
+        ao *= ao;
+
+        vec3 h     = normalize(ld - rd);
+        float spec = pow(max(dot(n, h), 0.0), 32.0) * 0.3;
+
+        col = base * (amb + diff) * ao
+            + vec3(0.3, 0.5, 0.7) * spec * ao;
+    }
+
+    // near-miss glow
+    col += vec3(0.08, 0.04, 0.2) * glow * 0.0008;
+
+    // fog
+    float fog = 1.0 - exp(-t * 0.12);
+    col = mix(col, vec3(0.01, 0.006, 0.025), fog);
+
+    // Reinhard tone map
+    col = col / (col + 0.65);
+    col = pow(max(col, vec3(0.0)), vec3(1.0 / 2.2));
+
+    // vignette
+    vec2 vc = uv - 0.5;
+    col *= 1.0 - dot(vc, vc) * 0.6;
+
+    oColor = vec4(col, 1.0);
+}`;
+
+// ----------------------------------------------------------------
+//  Compile helpers with on-screen errors
+// ----------------------------------------------------------------
+
+function makeShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        const err = gl.getShaderInfoLog(s);
+        status.style.color = '#f44';
+        status.textContent = 'SHADER ERROR:\\n' + err;
+        console.error(err);
+    }
+    return s;
+}
+
+const prog = gl.createProgram();
+gl.attachShader(prog, makeShader(gl.VERTEX_SHADER, VERT));
+gl.attachShader(prog, makeShader(gl.FRAGMENT_SHADER, FRAG));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    const err = gl.getProgramInfoLog(prog);
+    status.style.color = '#f44';
+    status.textContent = 'LINK ERROR:\\n' + err;
+    console.error(err);
+}
+gl.useProgram(prog);
+
+const loc = {
+    res:  gl.getUniformLocation(prog, 'uRes'),
+    pos:  gl.getUniformLocation(prog, 'uCamPos'),
+    w:    gl.getUniformLocation(prog, 'uCamW'),
+    mat:  gl.getUniformLocation(prog, 'uCamMat'),
+};
+
+// quad
+const vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+const vb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+// ----------------------------------------------------------------
+//  Resolution
+// ----------------------------------------------------------------
+
+let renderScale = 0.4;
+function resize() {
+    canvas.width  = Math.max(1, Math.round(innerWidth  * renderScale));
+    canvas.height = Math.max(1, Math.round(innerHeight * renderScale));
+}
+resize();
+addEventListener('resize', resize);
+
+// ----------------------------------------------------------------
+//  Camera
+// ----------------------------------------------------------------
+
+let cx = 0, cy = 0, cz = -2.5, cw = 0;
+let yaw = 0, pitch = 0;
+let vx = 0, vy = 0, vz = 0;
+
+// ----------------------------------------------------------------
+//  Input
+// ----------------------------------------------------------------
+
+const keys = {};
+addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'BracketRight') { renderScale = Math.min(1.0, renderScale + 0.05); resize(); }
+    if (e.code === 'BracketLeft')  { renderScale = Math.max(0.15, renderScale - 0.05); resize(); }
+    if (e.code === 'Space' || e.code === 'ControlLeft') e.preventDefault();
+    if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) canvas.requestFullscreen();
+        else document.exitFullscreen();
+    }
+});
+addEventListener('keyup', e => keys[e.code] = false);
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+canvas.addEventListener('click', () => canvas.requestPointerLock());
+document.addEventListener('pointerlockchange', () => {
+    const locked = !!document.pointerLockElement;
+    info.style.opacity = locked ? '0' : '0.55';
+    if (!locked) for (const k in keys) keys[k] = false;
+});
+document.addEventListener('mousemove', e => {
+    if (document.pointerLockElement !== canvas) return;
+    yaw   += e.movementX * 0.002;
+    pitch -= e.movementY * 0.002;
+    pitch  = Math.max(-1.55, Math.min(1.55, pitch));
+});
+
+// fade status after 6s if no errors
+setTimeout(() => {
+    if (status.style.color !== 'rgb(255, 68, 68)')
+        status.style.opacity = '0';
+}, 6000);
+
+// ----------------------------------------------------------------
+//  Render loop
+// ----------------------------------------------------------------
+
+let prev = performance.now();
+
+function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min((now - prev) / 1000, 0.06);
+    prev = now;
+
+    const sy = Math.sin(yaw), cyaw = Math.cos(yaw);
+    const sp = Math.sin(pitch), cp = Math.cos(pitch);
+
+    const fwd   = [sy * cp, sp, cyaw * cp];
+    const right = [cyaw, 0, -sy];
+    const up    = [-sy * sp, cp, -cyaw * sp];
+
+    if (document.pointerLockElement === canvas) {
+        const fast = keys['ShiftLeft'] || keys['ShiftRight'];
+        const spd  = (fast ? 3.0 : 0.8) * dt;
+        let mx = 0, my = 0, mz = 0;
+
+        if (keys['KeyW']) { mx += fwd[0]; my += fwd[1]; mz += fwd[2]; }
+        if (keys['KeyS']) { mx -= fwd[0]; my -= fwd[1]; mz -= fwd[2]; }
+        if (keys['KeyD']) { mx += right[0]; mz += right[2]; }
+        if (keys['KeyA']) { mx -= right[0]; mz -= right[2]; }
+        if (keys['Space'])     my += 1;
+        if (keys['ShiftLeft']) my -= 0;    // shift is "fast", ctrl is down
+        if (keys['ControlLeft']) my -= 1;
+
+        const len = Math.hypot(mx, my, mz) || 1;
+        const a = 1 - Math.exp(-10 * dt);
+        vx += (mx / len * spd - vx) * a;
+        vy += (my / len * spd - vy) * a;
+        vz += (mz / len * spd - vz) * a;
+
+        if (!mx && !my && !mz) {
+            const d = Math.exp(-6 * dt);
+            vx *= d; vy *= d; vz *= d;
+        }
+
+        if (keys['KeyQ']) cw -= dt * 0.5;
+        if (keys['KeyE']) cw += dt * 0.5;
+    }
+
+    cw += dt * 0.03;
+    cx += vx; cy += vy; cz += vz;
+
+    const camMat = new Float32Array([
+        right[0], right[1], right[2],
+        up[0],    up[1],    up[2],
+        fwd[0],   fwd[1],   fwd[2]
+    ]);
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(loc.res, canvas.width, canvas.height);
+    gl.uniform3f(loc.pos, cx, cy, cz);
+    gl.uniform1f(loc.w, cw);
+    gl.uniformMatrix3fv(loc.mat, false, camMat);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+var_id,category,title,definition,completeness_pct,n_unique_values
+EA017,Kinship,Largest patrilineal kin group,The largest type of patrilineal kin group reported for the society.,98.91556932610379,6
+EA018,Kinship,Largest patrilineal exogamous group,The largest patrilineal kin group characterized by exogamy.,98.91556932610379,6
+EA019,Kinship,Largest matrilineal kin group,The largest type of matrilineal kin group reported for the society.,98.91556932610379,6
+EA020,Kinship,Largest matrilineal exogamous group,The largest matrilineal kin group characterized by exogamy.,98.91556932610379,6
+EA043,Kinship,Descent: major type,"Major mode of descent (note: not in original EA; derived from variables describing patrilineal and matrilineal kin groups EA017, EA019 and EA021).",98.68319132455461,7
+EA010,Kinship,Marital residence with kin: first years,"Pattern of marital residence in the first years or so of marriage. The variable ""Marital residence with kin: change after first years"" indicates whether or not this differs from the pattern of marital residence in later years.",98.14097598760651,12
+EA011,Kinship,Transfer of residence at marriage: prevailing pattern,"The prevailing pattern of transfer of residence at marriage (note: not in original EA, summarized from variable describing marital residence with kin).",98.14097598760651,4
+EA012,Kinship,Marital residence with kin: prevailing pattern,The prevailing profile of marital residence in the society.,98.14097598760651,12
+EA008,Kinship,Domestic organization,The prevailing form of domestic or familial organization.,97.8311386522076,8
+EA009,Kinship,Marital composition: monogamy and polygamy,"Marital composition of family units, regardless of whether families live as independent nuclear units or as part of larger extended families.",97.36638264910921,7
+EA021,Other,Cognatic kin groups,"The presence or probable absence, and the typology, of cognatic kin groups.",98.99302865995352,7
+EA022,Other,Secondary cognatic kin group: kindreds and ramages,"The presence or probable absence, and the typology, of secondary cognatic kin groups. This variable highlights societies for which both kindreds (bilateral descent) and ramages (ambilineal descent) are reported.",98.99302865995352,3
+EA006,Other,Transactions at marriage: prevailing type,Prevailing type of transfer or exchange at marriage.,98.52827265685515,7
+EA007,Other,Transactions at marriage: alternate type,"Alternative types of transfer or exchange at marriage, or supplementary practices.",98.52827265685515,7
+EA013,Other,Transfer of residence at marriage: alternate,"Culturally patterned alternatives to, or numerically significant deviations from, the prevailing pattern of transfer of residence at marriage (note: not in original EA, summarized from variable describing marital residence with kin).",98.14097598760651,5
+EA014,Other,Marital residence with kin: alternate,"Culturally patterned alternatives to, or numerically significant deviations from, the prevailing profile of marital residence.",98.14097598760651,11
+EA201,Other,Marital residence with kin: change after first years,Indicates whether or not the pattern of marital residence differs in the first years of marriage relative to later years.,98.14097598760651,2
+EA040,Other,Domestic animals: type,The predominant type of animals kept.,91.55693261037955,7
+EA041,Other,Domestic animals: milking,Indicates whether or not domestic animals milked.,91.55693261037955,2
+EA032,Other,Jurisdictional hierarchy of local community,"The number of jurisdictional levels in the local community, with 2 representing the theoretical minimum (e.g., independent nuclear or polygynous families) and 4 representing the theoretical maximum (e.g., nuclear families nested within extended families and clan-barrios). See the variable ""Jurisdictional hierarchy beyond the local community"" for information on organization beyond the local community. Note that different types of organization on the same level, e.g., a consanguineal lineage and its localized equivalent, are counted as one, and organizations not held to be legitimate, e.g., imposed colonial regimes, are excluded.",90.39504260263361,3
+EA083,Other,House construction: roofing materials,Roofing materials of the prevailing type of dwelling.,89.85282726568552,11
+EA082,Other,House construction: shape of roof,Shape of roof  of the prevailing type of dwelling.,87.9163439194423,9
+EA037,Other,Male genital mutilations,"The practice of circumcision or any of its variants, when culturally normative and not sporadic or merely optional, as well as the age at which it typically occurs.",86.44461657629745,10
+EA015,Other,Community marriage organization,"The prevalence of local endogamy, agamy, and exogamy, together with the presence or absence of localized kin groups. The specific structure of clans, whether ambilocal, matrilocal, or patrilocal, is revealed by the variable describing prevailing patterns of residence with kin.",85.36018590240124,6
+EA016,Other,Organization of clan communities,"Indicates whether or not societies organized as clan-communities (i.e., where communities represent a single, localized, exogamous kin group or clan) are also segmented into clan barrios.",85.36018590240124,3
+EA081,Other,House construction: wall material,Wall material of the prevailing type of dwelling.,83.81099922540668,11
+EA023,Other,Cousin marriages permitted,"The rules or practices governing the marriageability or nonmarriageability of a man's first cousins and, in some cases, second cousins.",80.71262587141752,11
+EA024,Other,Cousin marriages permitted: subtypes,Number of types of cousins (first and/or second cousins) a man is permitted to marry.,80.71262587141752,8
+EA025,Other,Cousin marriages preferred,Preferred rather than just permitted marriages to particular first (and/or second) cousins.,80.71262587141752,15
+EA026,Other,Cousin marriages preferred: subtypes,Specific type(s) of cousin preferred as spouses.,80.71262587141752,6
+EA054,Other,Sex differences: agriculture,Specialization by sex in agriculture.,75.67776917118513,8
+EA044,Other,Sex differences: metal working,"Specialization by sex in such arts as smelting, casting, and forging, i.e., only those which involve the application of fire.",75.52285050348567,5
+EA055,Other,Age or occupational specialization: metal working,"Age or occupational specialization in such arts as smelting, casting, and forging, i.e., only those which involve the application of fire.",75.52285050348567,4
+EA051,Other,Sex differences: hunting,"Specialization by sex in hunting, including trapping and fowling.",74.74825716498839,3
+EA062,Other,Age or occupational specialization: hunting,"Age or occupational specialization in hunting, including trapping and fowling.",74.67079783113866,4
+EA027,Other,Kin terms for cousins,Extent to which names for cousins distinguish cousin subtypes and/or among other groups of kin.,73.97366382649109,8
+EA202,Other,Population size,"Population of ethnic group as a whole, unless otherwise noted in ""Comments"". Note that source differs by society; EA bibliography is source where possible, otherwise Ember (1992).",73.81874515879163,311
+EA072,Other,Political succession,"Rules of succession applying to the office of local headman (or a close equivalent), without reference to rules of succession prevailing on higher levels of political integration.",72.57939581719597,8
+EA033,Political,Jurisdictional hierarchy beyond local community,"The number of jurisdictional levels beyond the local community, with 1 representing the theoretical minimum (e.g.,  none/autonomous bands or villages) and 4 representing the theoretical maximum (e.g., villages nested within parishes, districts, provinces, and a complex state). This variable also provides a measure of political complexity, ranging from 1 for stateless societies, through 2 or 3 for petty and larger paramount chiefdoms or their equivalent, to 4 or 5 for large states. Note that different types of organization on the same level are counted as one, and organizations not held to be legitimate, e.g., imposed colonial regimes, are excluded.",89.46553059643688,5
+EA070,Political,Slavery: type,"The forms and prevalence of slave status, treated quite independently of both class and caste status.",86.83191324554609,4
+EA071,Political,Slavery: timing,"Indicates whether slavery present at the time of observation of the society, or only in the past.",86.75445391169636,3
+EA076,Political,Inheritance rule for movable property,"The rule or practice governing the disposition or transmission of a man's movable property (exclusive of any dower right of his widow). [Note that Murdock (1963a) warned that the codes for this variable had ""proved inadequate and in serious need of revision,"" and that the coded data ""should consequently be used only with circumspection""].",70.41053446940356,7
+EA079,Settlement,House construction: ground plan,Ground plan of the prevailing type of dwelling.,92.71882261812549,6
+EA030,Settlement,Settlement patterns,The prevailing type of settlement pattern.,91.9442292796282,8
+EA080,Settlement,House construction: floor level,Floor level of the prevailing type of dwelling.,91.32455460883037,4
+EA066,Social_Stratification,Class differentiation: primary,"The degree and type of class differentiation, excluding purely political and religious statuses. See also ""Class differentiation: secondary,"" as some societies exhibit important features of two different types of class differentation.",85.90240123934933,5
+EA067,Social_Stratification,Class differentiation: secondary features,"Secondary type of class differentiation present in the society, excluding purely political and religious statuses. See also ""Class differentiation: primary"".",85.90240123934933,5
+EA068,Social_Stratification,Caste differentiation: primary,"The degree and type of caste differentiation. See also ""Caste differentiation: secondary,"" as some societies exhibit important features of two different types of caste differentation.",85.43764523625097,4
+EA069,Social_Stratification,Caste differentiation: secondary features,"Secondary type of caste differentiation. See also ""Caste differentiation: primary"".",85.43764523625097,3
+EA065,Social_Stratification,Age or occupational specialization: agriculture,Age or occupational specialization in agriculture.,75.67776917118513,3
+EA001,Subsistence,Subsistence economy: gathering,"Dependence on the gathering of wild plants and small land fauna, relative to other subsistence activities.",99.92254066615027,9
+EA002,Subsistence,Subsistence economy: hunting,"Dependence on hunting, including trapping and fowling, relative to other subsistence activities.",99.92254066615027,10
+EA003,Subsistence,Subsistence economy: fishing,"Dependence on fishing, including shellfishing and the pursuit of large aquatic animals, relative to other subsistence activities.",99.92254066615027,10
+EA004,Subsistence,Subsistence economy: animal husbandry,"Dependence on animal husbandry, relative to other subsistence activities.",99.92254066615027,10
+EA005,Subsistence,Subsistence economy: agriculture,"Dependence on agriculture, relative to other subsistence activities.",99.92254066615027,10
+EA042,Subsistence,Subsistence economy: dominant activity,Dominant mode of subsistence (note: not in original EA; derived from other variables on subsistence and type of agriculture).,99.92254066615027,8
+EA028,Subsistence,Agriculture: intensity,Intensity of cultivation.,92.02168861347792,6
+EA029,Subsistence,Agriculture: major crop type,Principal type of crop cultivated.,91.32455460883037,6
+EA039,Technology,Domestic animals: plow cultivation,"Indicates whether or not animals are employed in plow cultivation, and whether plow cultivation is aboriginal or dates to the post-contact period.",91.55693261037955,3
+EA073,Technology,Political succession: hereditary succession,"Rules of succession applying to the office of local headman (or a close equivalent), without reference to rules of succession prevailing on higher levels of political integration.",72.57939581719597,6
