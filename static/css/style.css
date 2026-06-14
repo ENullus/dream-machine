@@ -1243,7 +1243,7 @@ h2 {
 
 /* ---- dial overrides for dark machine ---- */
 .machine-panel .dial label {
-  color: rgba(200,215,225,0.9);
+  color: #1a1a1a;
   font-size: 0.6rem;
   letter-spacing: 1px;
 }
